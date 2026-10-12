@@ -272,68 +272,43 @@ def get_mascot_state(percentage: float):
 
 def render_sleek_bottle(percentage: float) -> str:
     clamped = min(max(percentage, 0.0), 100.0)
-    # Total fillable height inside bottle is 170px (from y=225 to y=55)
     fill_h = (clamped / 100.0) * 170
     water_y = 225 - fill_h
 
-    return f"""
-    <div style="display:flex; justify-content:center; align-items:center; padding: 10px 0;">
-        <svg width="150" height="260" viewBox="0 0 150 260" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="liquidGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#38bdf8" />
-                    <stop offset="100%" stop-color="#0284c7" />
-                </linearGradient>
-                <linearGradient id="glassReflection" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="white" stop-opacity="0.55"/>
-                    <stop offset="35%" stop-color="white" stop-opacity="0.1"/>
-                    <stop offset="100%" stop-color="white" stop-opacity="0.35"/>
-                </linearGradient>
-                <clipPath id="innerBottleClip">
-                    <path d="M 55 30 
-                             L 95 30 
-                             L 95 55 
-                             Q 120 62 120 90 
-                             L 120 220 
-                             Q 120 234 106 234 
-                             L 44 234 
-                             Q 30 234 30 220 
-                             L 30 90 
-                             Q 30 62 55 55 
-                             Z" />
-                </clipPath>
-            </defs>
-
-            <!-- Cap -->
-            <rect x="58" y="16" width="34" height="14" rx="4" fill="#0369a1"/>
-            <rect x="54" y="28" width="42" height="4" rx="2" fill="#0ea5e9"/>
-
-            <!-- Bottle Body Background -->
-            <path d="M 55 30 L 95 30 L 95 55 Q 120 62 120 90 L 120 220 Q 120 234 106 234 L 44 234 Q 30 234 30 220 L 30 90 Q 30 62 55 55 Z" 
-                  fill="#f8fafc" stroke="#cbd5e1" stroke-width="2.5"/>
-
-            <!-- Liquid Level (Clipped) -->
-            <g clip-path="url(#innerBottleClip)">
-                <rect x="25" y="{water_y}" width="100" height="{fill_h + 30}" fill="url(#liquidGrad)"/>
-                <ellipse cx="75" cy="{water_y}" rx="45" ry="5" fill="#7dd3fc" opacity="{0.85 if clamped > 1 else 0}"/>
-            </g>
-
-            <!-- Measurement Ticks -->
-            <line x1="105" y1="95" x2="116" y2="95" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 2"/>
-            <text x="122" y="98" fill="#64748b" font-size="9" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600">75%</text>
-
-            <line x1="105" y1="140" x2="116" y2="140" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 2"/>
-            <text x="122" y="143" fill="#64748b" font-size="9" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600">50%</text>
-
-            <line x1="105" y1="185" x2="116" y2="185" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 2"/>
-            <text x="122" y="188" fill="#64748b" font-size="9" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600">25%</text>
-
-            <!-- Glass Reflection Overlay -->
-            <path d="M 55 30 L 95 30 L 95 55 Q 120 62 120 90 L 120 220 Q 120 234 106 234 L 44 234 Q 30 234 30 220 L 30 90 Q 30 62 55 55 Z" 
-                  fill="url(#glassReflection)" stroke="#38bdf8" stroke-width="2" opacity="0.9"/>
-        </svg>
-    </div>
-    """
+    return (
+        '<div style="display:flex; justify-content:center; align-items:center; padding: 8px 0;">'
+        '<svg width="150" height="260" viewBox="0 0 150 260" fill="none" xmlns="http://www.w3.org/2000/svg">'
+        '<defs>'
+        '<linearGradient id="liquidGrad" x1="0" y1="0" x2="1" y2="1">'
+        '<stop offset="0%" stop-color="#38bdf8" />'
+        '<stop offset="100%" stop-color="#0284c7" />'
+        '</linearGradient>'
+        '<linearGradient id="glassReflection" x1="0" y1="0" x2="1" y2="0">'
+        '<stop offset="0%" stop-color="white" stop-opacity="0.55"/>'
+        '<stop offset="35%" stop-color="white" stop-opacity="0.1"/>'
+        '<stop offset="100%" stop-color="white" stop-opacity="0.35"/>'
+        '</linearGradient>'
+        '<clipPath id="innerBottleClip">'
+        '<path d="M 55 30 L 95 30 L 95 55 Q 120 62 120 90 L 120 220 Q 120 234 106 234 L 44 234 Q 30 234 30 220 L 30 90 Q 30 62 55 55 Z" />'
+        '</clipPath>'
+        '</defs>'
+        '<rect x="58" y="16" width="34" height="14" rx="4" fill="#0369a1"/>'
+        '<rect x="54" y="28" width="42" height="4" rx="2" fill="#0ea5e9"/>'
+        '<path d="M 55 30 L 95 30 L 95 55 Q 120 62 120 90 L 120 220 Q 120 234 106 234 L 44 234 Q 30 234 30 220 L 30 90 Q 30 62 55 55 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2.5"/>'
+        '<g clip-path="url(#innerBottleClip)">'
+        f'<rect x="25" y="{water_y}" width="100" height="{fill_h + 30}" fill="url(#liquidGrad)"/>'
+        f'<ellipse cx="75" cy="{water_y}" rx="45" ry="5" fill="#7dd3fc" opacity="{0.85 if clamped > 1 else 0}"/>'
+        '</g>'
+        '<line x1="105" y1="95" x2="116" y2="95" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 2"/>'
+        '<text x="122" y="98" fill="#64748b" font-size="9" font-family="sans-serif" font-weight="600">75%</text>'
+        '<line x1="105" y1="140" x2="116" y2="140" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 2"/>'
+        '<text x="122" y="143" fill="#64748b" font-size="9" font-family="sans-serif" font-weight="600">50%</text>'
+        '<line x1="105" y1="185" x2="116" y2="185" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 2"/>'
+        '<text x="122" y="188" fill="#64748b" font-size="9" font-family="sans-serif" font-weight="600">25%</text>'
+        '<path d="M 55 30 L 95 30 L 95 55 Q 120 62 120 90 L 120 220 Q 120 234 106 234 L 44 234 Q 30 234 30 220 L 30 90 Q 30 62 55 55 Z" fill="url(#glassReflection)" stroke="#38bdf8" stroke-width="2" opacity="0.9"/>'
+        '</svg>'
+        '</div>'
+    )
 
 
 # ==========================================
@@ -398,7 +373,7 @@ with st.sidebar:
     st.markdown("### ⚙️ Preferences & Tools")
 
     # Age Group Selector
-    st.markdown('<div class="section-label">Profile</div>', unsafe_allow_html=True)
+    st.html('<div class="section-label">Profile</div>')
     st.selectbox(
         "Age Category",
         options=list(AGE_GROUPS.keys()),
@@ -410,7 +385,7 @@ with st.sidebar:
     st.caption(f"💡 {AGE_GROUPS[st.session_state.age_group]['hint']}")
 
     # Manual Goal Customization
-    st.markdown('<div class="section-label" style="margin-top:1rem;">Daily Goal (ml)</div>', unsafe_allow_html=True)
+    st.html('<div class="section-label" style="margin-top:1rem;">Daily Goal (ml)</div>')
     custom_target = st.number_input(
         "Goal in ml",
         min_value=500,
@@ -424,7 +399,7 @@ with st.sidebar:
     st.markdown("---")
 
     # Clean Unit Converter
-    st.markdown('<div class="section-label">Unit Converter</div>', unsafe_allow_html=True)
+    st.html('<div class="section-label">Unit Converter</div>')
     conv_tab = st.radio("Convert", ["Cups ↔ mL", "fl oz ↔ mL"], horizontal=True, label_visibility="collapsed")
     if conv_tab == "Cups ↔ mL":
         cups = st.number_input("Cups (1 cup = 250 ml)", min_value=0.5, value=1.0, step=0.5)
@@ -444,7 +419,7 @@ with st.sidebar:
 # ==========================================
 
 # Top Clean Header
-st.markdown("""
+st.html("""
 <div class="app-header">
     <div>
         <h1 class="brand-title">💧 WaterBuddy</h1>
@@ -454,15 +429,15 @@ st.markdown("""
         <span class="stat-pill">✨ Daily Goal</span>
     </div>
 </div>
-""", unsafe_allow_html=True)
+""")
 
 # Daily Tip Banner
-st.markdown(f"""
+st.html(f"""
 <div class="tip-card">
     <span style="font-size:1.2rem;">💡</span>
     <span>{HYDRATION_TIPS[st.session_state.tip_idx]}</span>
 </div>
-""", unsafe_allow_html=True)
+""")
 
 # Metrics calculation
 remaining_ml, percentage = calculate_metrics(st.session_state.total_intake, st.session_state.daily_goal)
@@ -481,7 +456,7 @@ col_left, col_right = st.columns([7, 5], gap="large")
 # LEFT COLUMN: INTERACTION & LOGGING
 # ------------------------------------------
 with col_left:
-    st.markdown('<div class="section-label">Quick Intake Log</div>', unsafe_allow_html=True)
+    st.html('<div class="section-label">Quick Intake Log</div>')
     
     # 3 Pill buttons
     b1, b2, b3 = st.columns(3)
@@ -509,7 +484,7 @@ with col_left:
                 st.rerun()
 
     # History & Manage Buttons
-    st.markdown('<div class="section-label" style="margin-top:1.5rem;">Today\'s Timeline</div>', unsafe_allow_html=True)
+    st.html('<div class="section-label" style="margin-top:1.5rem;">Today\'s Timeline</div>')
     
     if st.session_state.logs:
         df_logs = pd.DataFrame(reversed(st.session_state.logs))
@@ -533,23 +508,19 @@ with col_left:
 # RIGHT COLUMN: VISUAL DASHBOARD & MASCOT
 # ------------------------------------------
 with col_right:
-    # Hydration Summary Card
-    st.markdown("""
-    <div class="glass-card" style="padding-bottom: 0.8rem;">
-    """, unsafe_allow_html=True)
-    
-    st.markdown(f"""
+    with st.container(border=True):
+        st.html(f"""
         <div class="progress-hero">
             <div class="hero-number">{st.session_state.total_intake:,} <span style="font-size:1.4rem; font-weight:600; color:#64748b;">ml</span></div>
             <div class="hero-target">of {st.session_state.daily_goal:,} ml target ({percentage}%)</div>
         </div>
-    """, unsafe_allow_html=True)
+        """)
 
-    # Sleek progress bar
-    st.progress(min(percentage / 100.0, 1.0))
+        # Sleek progress bar
+        st.progress(min(percentage / 100.0, 1.0))
 
-    # Metric micro-boxes
-    st.markdown(f"""
+        # Metric micro-boxes
+        st.html(f"""
         <div class="metric-row">
             <div class="metric-box">
                 <div class="metric-box-title">Remaining</div>
@@ -557,17 +528,17 @@ with col_right:
             </div>
             <div class="metric-box">
                 <div class="metric-box-title">Status</div>
-                <div class="metric-box-val" style="color:#10b981;">{f"{percentage}%" if percentage < 100 else "Completed! 🎉"}</div>
+                <div class="metric-box-val" style="color:#10b981;">{"Completed! 🎉" if percentage >= 100 else f"{percentage}%"}</div>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+        """)
 
-    # Dynamic Water Bottle Illustration
-    st.markdown(render_sleek_bottle(percentage), unsafe_allow_html=True)
+        # Dynamic Water Bottle Illustration
+        st.html(render_sleek_bottle(percentage))
 
-    # Mascot Milestone Feedback
-    mascot_icon, mascot_title, mascot_msg = get_mascot_state(percentage)
-    st.markdown(f"""
+        # Mascot Milestone Feedback
+        mascot_icon, mascot_title, mascot_msg = get_mascot_state(percentage)
+        st.html(f"""
         <div class="mascot-container">
             <div class="mascot-icon">{mascot_icon}</div>
             <div>
@@ -575,5 +546,4 @@ with col_right:
                 <p class="mascot-desc">{mascot_msg}</p>
             </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """)
