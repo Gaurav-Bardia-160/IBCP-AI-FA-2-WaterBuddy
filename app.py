@@ -15,6 +15,15 @@ Key Features:
 - Daily scientific hydration tips and intake history log
 """
 
+import sys
+from streamlit.runtime.scriptrunner import get_script_run_ctx
+
+# If run directly via 'python app.py' (or the VS Code Run button), automatically launch via Streamlit
+if get_script_run_ctx() is None:
+    from streamlit.web import cli as stcli
+    sys.argv = ["streamlit", "run", __file__]
+    sys.exit(stcli.main())
+
 import streamlit as st
 import random
 from datetime import datetime
@@ -354,7 +363,7 @@ def on_age_change():
 # 6. SIDEBAR: TOOLS & HYDRATION KNOWLEDGE
 # ==========================================
 with st.sidebar:
-    st.image("https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=300&q=80", use_container_width=True)
+    st.image("https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=300&q=80", width=300)
     st.title("💧 WaterBuddy Tools")
     st.caption("WellNest Technologies • AI CRS Project")
 
