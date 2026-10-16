@@ -1,20 +1,23 @@
 """
-WaterBuddy - Interactive Water Hydration Tracker
-Built 100% with pure Streamlit widgets and components (no HTML/CSS).
-Faithfully implements all features from the FA-1 Storyboard and FA-2 Rubric:
+WaterBuddy - Clean Mobile Hydration App
+100% Pure Python & Streamlit (No HTML, No CSS).
+
+Built specifically in a clean, centered mobile-app layout matching
+the phone wireframes and features from the FA-1 Storyboard:
+- Centered phone container with tab navigation: Today, Log Drink, Summary, Profile
 - 4 Avatars: Child, Teen, Adult, Senior
-- Auto-suggested daily targets with manual adjustment option
-- Real-time calculations: Total intake, remaining needed, % progress
-- Streamlit progress bar with dynamic motivational milestones
-- Turtle Mascot milestone reactions (<20% resting, >=20% smile, >=75% wave, 100%+ celebration)
-- Compulsory +250ml log button, companion presets, and custom entry
-- End-of-Day summary & New Day reset confirmation
+- Standard age goals with manual adjustments
+- Live calculations: Total intake, remaining needed, % progress
+- Real-time progress bar & milestone messages
+- Turtle mascot milestone reactions (<20% resting, >=20% smile, >=75% wave, 100%+ celebration)
+- One-touch +250ml quick logging & custom entries
+- End-of-Day report & safe New Day reset confirmation
 """
 
 import sys
 from streamlit.runtime.scriptrunner import get_script_run_ctx
 
-# Auto-launch via Streamlit if executed directly with python app.py
+# Auto-launcher for running directly via 'python app.py'
 if get_script_run_ctx() is None:
     from streamlit.web import cli as stcli
     sys.argv = ["streamlit", "run", __file__]
@@ -30,50 +33,50 @@ import pandas as pd
 st.set_page_config(
     page_title="WaterBuddy",
     page_icon="💧",
-    layout="wide",
+    layout="centered",
     initial_sidebar_state="collapsed"
 )
 
 # ==============================================================================
-# 2. STORYBOARD DATA & PRESETS
+# 2. STORYBOARD DATA CONSTANTS
 # ==============================================================================
 AVATARS = {
-    "🧒 Child (6–12 yrs)": {
-        "name": "Child",
-        "recommended_ml": 1600,
+    "🧒 Child": {
+        "full_name": "Child (6–12 yrs)",
+        "goal": 1600,
         "cups": "≈ 6–7 cups (250 ml each)",
-        "hint": "Growing children need steady hydration during school, play, and sports."
+        "hint": "Growing bodies require regular hydration during school & playtime."
     },
-    "👧 Teen (13–18 yrs)": {
-        "name": "Teen",
-        "recommended_ml": 2000,
+    "👧 Teen": {
+        "full_name": "Teen (13–18 yrs)",
+        "goal": 2000,
         "cups": "≈ 8–10 cups (250 ml each)",
-        "hint": "High energy levels and study routines demand consistent fluid intake."
+        "hint": "High study routines & activities demand constant fluid balance."
     },
-    "🧑 Adult (19–50 yrs)": {
-        "name": "Adult",
-        "recommended_ml": 2500,
+    "🧑 Adult": {
+        "full_name": "Adult (19–50 yrs)",
+        "goal": 2500,
         "cups": "≈ 8–10 cups (250 ml each)",
-        "hint": "Maintains peak cognitive focus, organ vitality, and physical energy."
+        "hint": "Supports peak mental focus, daily energy, and metabolism."
     },
-    "👴 Senior (65+ yrs)": {
-        "name": "Senior",
-        "recommended_ml": 2000,
+    "👴 Senior": {
+        "full_name": "Senior (65+ yrs)",
+        "goal": 2000,
         "cups": "≈ 4–10 cups (250 ml each)",
         "hint": "Thirst cues decline with age; scheduled drinking is essential."
     }
 }
 
 # ==============================================================================
-# 3. SESSION STATE INITIALIZATION
+# 3. INITIALIZE STATE
 # ==============================================================================
-default_avatar_key = list(AVATARS.keys())[2]  # Adult default
+default_avatar = "🧑 Adult"
 
-if "avatar_choice" not in st.session_state:
-    st.session_state.avatar_choice = default_avatar_key
+if "avatar" not in st.session_state:
+    st.session_state.avatar = default_avatar
 
 if "daily_goal" not in st.session_state:
-    st.session_state.daily_goal = AVATARS[default_avatar_key]["recommended_ml"]
+    st.session_state.daily_goal = AVATARS[default_avatar]["goal"]
 
 if "total_intake" not in st.session_state:
     st.session_state.total_intake = 0
@@ -92,175 +95,150 @@ if "show_reset_confirm" not in st.session_state:
 # 4. ACTION CALLBACKS
 # ==============================================================================
 def log_water(amount: int, label: str):
-    """Logs water intake and adds timestamped history."""
+    """Logs water intake and adds a timestamped record."""
     if amount > 0:
         st.session_state.total_intake += amount
         st.session_state.logs.append({
             "Time": datetime.now().strftime("%I:%M %p"),
-            "Container": label,
-            "Amount Added": f"+{amount} ml",
-            "Total Accumulated": f"{st.session_state.total_intake} ml"
+            "Drink": label,
+            "Amount": f"+{amount} ml",
+            "Total": f"{st.session_state.total_intake} ml"
         })
         st.toast(f"Logged +{amount} ml ({label})!", icon="💧")
 
-def undo_last_drink():
-    """Removes the most recent intake entry."""
+def undo_drink():
+    """Removes the most recent logged intake."""
     if st.session_state.logs:
         last = st.session_state.logs.pop()
-        amt = int(last["Amount Added"].replace("+", "").replace(" ml", "").strip())
+        amt = int(last["Amount"].replace("+", "").replace(" ml", "").strip())
         st.session_state.total_intake = max(0, st.session_state.total_intake - amt)
-        st.toast(f"Removed last log (-{amt} ml)", icon="↩️")
+        st.toast(f"Undid -{amt} ml", icon="↩️")
 
-def reset_counters():
-    """Resets daily progress for a new day."""
+def reset_all():
+    """Resets daily counters for a fresh day."""
     st.session_state.total_intake = 0
     st.session_state.logs = []
     st.session_state.celebrated = False
     st.session_state.show_reset_confirm = False
     st.toast("Counters reset for a fresh day!", icon="🔄")
 
-def on_avatar_change():
-    """Updates the recommended goal when avatar profile changes."""
-    selected = st.session_state.avatar_radio_input
-    st.session_state.avatar_choice = selected
-    st.session_state.daily_goal = AVATARS[selected]["recommended_ml"]
 
+# Calculate live metrics
+remaining = max(0, st.session_state.daily_goal - st.session_state.total_intake)
+pct = round((st.session_state.total_intake / st.session_state.daily_goal) * 100, 1) if st.session_state.daily_goal > 0 else 0.0
 
-# Core calculations
-remaining_needed = max(0, st.session_state.daily_goal - st.session_state.total_intake)
-pct_progress = round((st.session_state.total_intake / st.session_state.daily_goal) * 100, 1) if st.session_state.daily_goal > 0 else 0.0
-
-# Celebration balloons trigger at 100%
-if pct_progress >= 100.0 and not st.session_state.celebrated:
+if pct >= 100.0 and not st.session_state.celebrated:
     st.balloons()
     st.session_state.celebrated = True
-elif pct_progress < 100.0:
+elif pct < 100.0:
     st.session_state.celebrated = False
 
 
 # ==============================================================================
-# 5. APP HEADER
+# 5. MOBILE APP INTERFACE (PURE PYTHON)
 # ==============================================================================
+
+# Mobile App Header
 st.title("💧 WaterBuddy")
-st.caption("Smart Daily Hydration Tracker • 100% Pure Streamlit")
+st.caption(f"Profile: **{st.session_state.avatar}** • Target: **{st.session_state.daily_goal:,} ml**")
 
-# ==============================================================================
-# 6. TOP SECTION: USER AVATAR & DAILY TARGET (STORYBOARD PANELS 1, 2, 3)
-# ==============================================================================
-with st.container(border=True):
-    st.subheader("👤 User Profile & Daily Target")
-    
-    col_av, col_goal = st.columns([6, 4], gap="medium")
-    
-    with col_av:
-        st.write("**Select Your Avatar:**")
-        selected_av = st.radio(
-            "Select Avatar",
-            options=list(AVATARS.keys()),
-            index=list(AVATARS.keys()).index(st.session_state.avatar_choice),
-            horizontal=True,
-            key="avatar_radio_input",
-            on_change=on_avatar_change,
-            label_visibility="collapsed"
-        )
-        active_info = AVATARS[selected_av]
-        st.info(f"💡 **{active_info['name']} Target**: {active_info['hint']}")
+# Clean Mobile Navigation Tabs (Directly matching Storyboard mobile navigation)
+tab_home, tab_log, tab_summary, tab_profile = st.tabs([
+    "🏠 Today",
+    "🥤 Log Drink",
+    "📊 Summary",
+    "⚙️ Profile"
+])
 
-    with col_goal:
-        st.write("**Daily Water Target (ml):**")
-        st.session_state.daily_goal = st.number_input(
-            "Custom Goal in ml",
-            min_value=500,
-            max_value=5000,
-            value=st.session_state.daily_goal,
-            step=100,
-            label_visibility="collapsed",
-            help="You can manually adjust your daily target if needed."
-        )
-        st.caption(f"Standard guideline: **{active_info['recommended_ml']} ml** ({active_info['cups']})")
-
-
-# ==============================================================================
-# 7. MAIN SECTION: 2 BALANCED COLUMNS
-# ==============================================================================
-col_left, col_right = st.columns([5, 5], gap="large")
 
 # ------------------------------------------------------------------------------
-# LEFT COLUMN: HYDRATION PROGRESS & TURTLE MASCOT
+# TAB 1: 🏠 TODAY (HOME SCREEN)
 # ------------------------------------------------------------------------------
-with col_left:
-    # 1. LIVE HYDRATION PROGRESS
+with tab_home:
     with st.container(border=True):
-        st.subheader("📊 Live Hydration Progress")
+        st.subheader("💧 Today's Hydration")
         
-        # 3 Aligned Metrics (Storyboard: Total ++ amount, remaining needed, % progress)
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Total Drunk", f"{st.session_state.total_intake} ml")
-        m2.metric("Remaining", f"{remaining_needed} ml")
-        m3.metric("Progress", f"{pct_progress}%")
-        
-        # Streamlit Native Progress Bar (Compulsory Feature)
-        progress_val = min(pct_progress / 100.0, 1.0)
-        st.progress(progress_val)
-        
-        # Motivational Milestone Feedback below progress bar (Storyboard Screens 1, 2, 3)
-        if pct_progress >= 100.0:
-            st.success("🏆 **Goal Achieved! Fantastic job!** (100% of daily target reached)")
-        elif pct_progress >= 75.0:
-            st.success(f"⭐ **Almost at the finish line!** ({pct_progress}% completed)")
-        elif pct_progress >= 50.0:
-            st.info(f"🌊 **Halfway there!** ({pct_progress}% completed - keep up the great pace!)")
-        elif pct_progress >= 20.0:
-            st.info(f"🌱 **Great start!** ({pct_progress}% completed - water level rising steadily)")
-        else:
-            st.write("💧 **Ready to start!** Take your first sip today to begin tracking.")
+        # 3 Clean Metrics (Storyboard: Total ++ amount, remaining needed, % progress)
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Drunk", f"{st.session_state.total_intake:,} ml")
+        col2.metric("Remaining", f"{remaining:,} ml")
+        col3.metric("Progress", f"{pct}%")
 
-    # 2. TURTLE MASCOT MILESTONE SYSTEM (STORYBOARD PANEL 6)
+        # Native Progress Bar
+        progress_val = min(pct / 100.0, 1.0)
+        st.progress(progress_val)
+
+        # Dynamic Water Cups Visual (Pure Python)
+        cups_drunk = st.session_state.total_intake // 250
+        total_cups_needed = max(1, st.session_state.daily_goal // 250)
+        filled_icons = "🥛 " * min(cups_drunk, 10)
+        empty_icons = "🫙 " * max(0, min(total_cups_needed - cups_drunk, 10))
+        st.write(f"**Intake Level:** {filled_icons}{empty_icons} ({cups_drunk}/{total_cups_needed} glasses)")
+
+        # Motivational Feedback (Storyboard Screens 1, 2, 3)
+        if pct >= 100.0:
+            st.success("🏆 **Goal Achieved! Fantastic job!** (100% reached)")
+        elif pct >= 75.0:
+            st.success(f"⭐ **Almost at the finish line!** ({pct}% completed)")
+        elif pct >= 50.0:
+            st.info(f"🌊 **Halfway there!** ({pct}% completed - logged water keeping you energized)")
+        elif pct >= 20.0:
+            st.info(f"🌱 **Great start!** ({pct}% completed - keep sipping regularly)")
+        else:
+            st.write("💧 **Ready to start!** Take your first sip today to begin.")
+
+    # Turtle Mascot Card (Storyboard Panel 6)
     with st.container(border=True):
         st.subheader("🐢 Turtle Mascot")
-        
-        if pct_progress >= 100.0:
+        if pct >= 100.0:
             st.markdown("### 🐢🎉✨ **Celebration!**")
             st.success("Awesome job! You reached 100% of your daily water goal! Turtle is celebrating with you!")
-        elif pct_progress >= 75.0:
+        elif pct >= 75.0:
             st.markdown("### 🐢👋 **Avatar Waves!**")
-            st.info(f"You're at {pct_progress}%! Turtle is happily waving hello and cheering you to the finish line!")
-        elif pct_progress >= 20.0:
+            st.info(f"You're at {pct}%! Turtle is happily waving hello and cheering you to the finish line!")
+        elif pct >= 20.0:
             st.markdown("### 🐢😊 **Avatar Smiles!**")
-            st.info(f"Great start ({pct_progress}%)! Turtle is smiling at your healthy routine.")
+            st.info(f"Great start ({pct}%)! Turtle is smiling at your healthy routine.")
         else:
             st.markdown("### 🐢😴 **Turtle is Resting**")
             st.write("Take your first sip (reach 20% progress) to wake Turtle up and see him smile!")
 
+    # 1-Click Primary Quick Drink Button
+    if st.button("➕ Quick Drink (+250 ml Glass)", use_container_width=True, type="primary"):
+        log_water(250, "Glass (250 ml)")
+        st.rerun()
+
 
 # ------------------------------------------------------------------------------
-# RIGHT COLUMN: LOGGING & SUMMARY
+# TAB 2: 🥤 LOG DRINK (LOG ACTIVITY SCREEN - SCREENS 5 & 6)
 # ------------------------------------------------------------------------------
-with col_right:
-    # 1. LOG WATER INTAKE (STORYBOARD SCREENS 5 & 6)
+with tab_log:
     with st.container(border=True):
-        st.subheader("🥤 Log Water Intake")
-        
-        # Compulsory +250ml Glass Button (Screen 5)
+        st.subheader("🥤 Quick Presets")
+        st.write("Select a preset to quickly add to your daily intake:")
+
+        # Primary compulsory +250ml Glass button
         if st.button("➕ 250 ml (Standard Glass)", use_container_width=True, type="primary"):
             log_water(250, "Glass (250 ml)")
             st.rerun()
-            
-        # Companion presets
-        p1, p2 = st.columns(2)
-        with p1:
-            if st.button("➕ 100 ml (Cup)", use_container_width=True):
+
+        # Companion preset buttons
+        btn_c1, btn_c2 = st.columns(2)
+        with btn_c1:
+            if st.button("➕ 100 ml (Small Cup)", use_container_width=True):
                 log_water(100, "Cup (100 ml)")
                 st.rerun()
-        with p2:
-            if st.button("➕ 500 ml (Bottle)", use_container_width=True):
+        with btn_c2:
+            if st.button("➕ 500 ml (Water Bottle)", use_container_width=True):
                 log_water(500, "Bottle (500 ml)")
                 st.rerun()
-                
-        # Custom Entry (Screen 6)
-        st.write("**Log Custom Amount:**")
-        cin1, cin2 = st.columns([3, 2])
-        with cin1:
+
+    with st.container(border=True):
+        st.subheader("✏️ Custom Entry")
+        st.write("Enter an exact amount of water in milliliters:")
+        
+        custom_c1, custom_c2 = st.columns([3, 2])
+        with custom_c1:
             custom_ml = st.number_input(
                 "Amount in ml",
                 min_value=20,
@@ -269,56 +247,99 @@ with col_right:
                 step=50,
                 label_visibility="collapsed"
             )
-        with cin2:
-            if st.button("Add entry", use_container_width=True):
+        with custom_c2:
+            if st.button("Add Entry", use_container_width=True):
                 log_water(custom_ml, f"Custom ({custom_ml} ml)")
                 st.rerun()
 
-    # 2. END-OF-DAY SUMMARY & RESET (STORYBOARD SCREENS 8 & 9)
+    # Undo Button
+    if st.button("↩️ Undo Last Logged Drink", use_container_width=True, disabled=(len(st.session_state.logs) == 0)):
+        undo_drink()
+        st.rerun()
+
+
+# ------------------------------------------------------------------------------
+# TAB 3: 📊 SUMMARY (END-OF-DAY SUMMARY - SCREENS 8 & 9)
+# ------------------------------------------------------------------------------
+with tab_summary:
     with st.container(border=True):
         st.subheader("📋 End-of-Day Summary")
-        
-        summary_col1, summary_col2 = st.columns(2)
-        summary_col1.metric("Total Intake", f"{st.session_state.total_intake} ml")
-        summary_col2.metric("Target Goal", f"{st.session_state.daily_goal} ml")
-        
-        if pct_progress >= 100.0:
-            st.success(f"**{pct_progress}% Achieved!** Excellent job! Regular hydration is keeping you energized.")
+        st.caption("Daily Hydration Report")
+
+        sum_c1, sum_c2 = st.columns(2)
+        sum_c1.metric("Total Intake", f"{st.session_state.total_intake:,} ml")
+        sum_c2.metric("Daily Target", f"{st.session_state.daily_goal:,} ml")
+
+        if pct >= 100.0:
+            st.success(f"**{pct}% Achieved!** 🎉 Excellent job! You hit 100% of your target. Regular hydration is keeping you energized!")
         else:
-            st.info(f"**{pct_progress}% Achieved!** Regular sips throughout the day will help you reach 100%.")
+            st.info(f"**{pct}% Achieved!** Keep sipping water consistently to reach your goal.")
 
-        # Action Buttons
-        b_undo, b_reset = st.columns(2)
-        with b_undo:
-            if st.button("↩️ Undo Last", use_container_width=True, disabled=(len(st.session_state.logs) == 0)):
-                undo_last_drink()
+        st.divider()
+
+        # Storyboard Screen 8: New Day / Reset confirmation
+        if not st.session_state.show_reset_confirm:
+            if st.button("🔄 New Day / Reset Counters", use_container_width=True):
+                st.session_state.show_reset_confirm = True
                 st.rerun()
-        with b_reset:
-            if not st.session_state.show_reset_confirm:
-                if st.button("🔄 New Day / Reset", use_container_width=True):
-                    st.session_state.show_reset_confirm = True
-                    st.rerun()
-
-        # Storyboard Screen 8 Confirmation
-        if st.session_state.show_reset_confirm:
+        else:
             st.warning("⚠️ **New Day Confirmation**: This will reset your counters for today. Are you sure?")
-            c1, c2 = st.columns(2)
-            with c1:
+            conf1, conf2 = st.columns(2)
+            with conf1:
                 if st.button("✅ [Yes] Reset Now", use_container_width=True, type="primary"):
-                    reset_counters()
+                    reset_all()
                     st.rerun()
-            with c2:
+            with conf2:
                 if st.button("❌ Cancel", use_container_width=True):
                     st.session_state.show_reset_confirm = False
                     st.rerun()
 
+    # Timeline Log
+    with st.expander("📜 Today's Logged History", expanded=True):
+        if st.session_state.logs:
+            df_history = pd.DataFrame(reversed(st.session_state.logs))
+            st.dataframe(df_history, use_container_width=True, hide_index=True)
+        else:
+            st.info("No drinks logged yet today.")
 
-# ==============================================================================
-# 8. TODAY'S INTAKE HISTORY LOG
-# ==============================================================================
-with st.expander("📜 Today's Intake History Log", expanded=False):
-    if st.session_state.logs:
-        df_history = pd.DataFrame(reversed(st.session_state.logs))
-        st.dataframe(df_history, use_container_width=True, hide_index=True)
-    else:
-        st.info("No drinks logged yet today. Click **+250 ml** to log your first drink!")
+
+# ------------------------------------------------------------------------------
+# TAB 4: ⚙️ PROFILE (USER AVATARS & GUIDELINES)
+# ------------------------------------------------------------------------------
+with tab_profile:
+    with st.container(border=True):
+        st.subheader("👤 User Avatar & Age Group")
+        
+        avatar_keys = list(AVATARS.keys())
+        selected_avatar = st.radio(
+            "Select Avatar",
+            options=avatar_keys,
+            index=avatar_keys.index(st.session_state.avatar),
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+        
+        if selected_avatar != st.session_state.avatar:
+            st.session_state.avatar = selected_avatar
+            st.session_state.daily_goal = AVATARS[selected_avatar]["goal"]
+            st.rerun()
+
+        info = AVATARS[st.session_state.avatar]
+        st.info(f"**{info['full_name']}**: {info['hint']}")
+
+    with st.container(border=True):
+        st.subheader("🎯 Daily Target Adjustment")
+        st.write("Standard suggested goal based on age with manual adjustment option:")
+        
+        adj_goal = st.number_input(
+            "Target Goal (ml)",
+            min_value=500,
+            max_value=5000,
+            value=st.session_state.daily_goal,
+            step=100
+        )
+        if adj_goal != st.session_state.daily_goal:
+            st.session_state.daily_goal = adj_goal
+            st.rerun()
+
+        st.caption(f"Standard guideline: **{info['goal']:,} ml** ({info['cups']})")
